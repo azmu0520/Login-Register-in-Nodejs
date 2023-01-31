@@ -19,8 +19,10 @@ app.use(express.json());
 
 // Import Routes
 const usersRoute = require('./routes/user');
+const messageRoute = require('./routes/message');
 
 // Route Middlewares
 app.use('/api/users', usersRoute);
+app.use('/api/messages', messageRoute);
 
 app.listen(5000, () => console.log('Server is runing'));
