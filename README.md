@@ -27,7 +27,6 @@
             <li>method=GET</li>
         </ul>
     </li>
-
     <li>
         To display all messages send to the current user.
         <ul>
