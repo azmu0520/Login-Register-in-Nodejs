@@ -1,6 +1,6 @@
 <h1>  Usage  </h1>
 
-<ul>
+<ol>
     <li>
       Api  Can be used without registration and authentication
     </li>
@@ -36,5 +36,10 @@
             <li>body={recipient:"username"}</li>
         </ul>
     </li>
+    <li>
+        Users can send message to themselves
+    </li>
 
-</ul>
+</ol>
+
+<h3>Thank you for your attention. Do not forget to like this repo!!!</h3>
