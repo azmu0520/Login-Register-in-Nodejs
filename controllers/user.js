@@ -28,18 +28,21 @@ exports.getAllUsers = async (req, res) => {
 exports.createUser = async (req, res) => {
   const nameExist = await User.findOne({ name: req.body.name });
   if (nameExist) {
-    return res.status(400).send({ error: 'Name already exists' });
+    return res
+      .status(200)
+      .send({ message: 'Name already exists', name: nameExist });
   }
   try {
     const { name } = req.body;
-    const user = new User({ name });
+    const user = new User({ name: name });
     await user.save();
-    res.status(201).json({
+    res.status(201).send({
       message: 'User created successfully',
+      name: user,
     });
   } catch (error) {
     res.status(500).json({
-      error: err.message,
+      error: error.message,
     });
   }
 };

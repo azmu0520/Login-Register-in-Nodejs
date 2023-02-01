@@ -6,22 +6,21 @@ exports.createMessage = async (req, res) => {
   const userExist = await User.findOne({
     name: req.body.recipient,
   }).exec();
-  console.log(userExist);
   if (!userExist) {
     return res.status(404).send({ error: 'User name not found' });
   }
   try {
     const { recipient, title, message } = req.body;
     const newMessage = new Message({
-      recipient,
-      title,
-      message,
+      recipient: recipient,
+      title: title,
+      message: message,
     });
     await newMessage.save();
     res.status(201).send({ message: 'The message has been sent' });
   } catch (error) {
     res.status(500).json({
-      error: err.message,
+      error: error.message,
     });
   }
 };
@@ -35,7 +34,7 @@ exports.getRecipientMessages = async (req, res) => {
     res.status(200).send(messages);
   } catch (error) {
     res.status(500).json({
-      message: err,
+      message: error,
     });
   }
 };
