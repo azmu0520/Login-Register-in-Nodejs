@@ -1,38 +1,27 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const userRoute = require("./routes/user");
 const app = express();
-const httpServer = require('http').createServer();
-const io = require('socket.io')(httpServer, {
-  cors: {
-    origin: '*',
-  },
-});
-dotenv.config();
+require("dotenv").config();
 
-mongoose.set('strictQuery', true);
-mongoose.connect(process.env.URL_DB, () => {
-  console.log('connected to db');
-});
-
-// Create a server for socket.io
-io.on('connection', (socket) => {
-  console.log('a user connected');
-});
-// Cors
-app.use(cors({ origin: '*' }));
-
-// Middleware
 app.use(express.json());
+app.use(cors());
 
-// Import Routes
-const usersRoute = require('./routes/user');
-const messageRoute = require('./routes/message');
+// Routes
+app.use("/api/user", userRoute);
 
-// Route Middlewares
-app.use('/api/users', usersRoute);
-app.use('/api/messages', messageRoute);
+const port = process.env.PORT || 5000;
+const uri = process.env.MONGO_DB;
 
-// server.listen()
-app.listen(5000, () => console.log('Server is runing'));
+app.listen(port, (req, res) => {
+  console.log(`Server running on port....: ${port}`);
+});
+
+mongoose
+  .connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDb connected"))
+  .catch((err) => console.log("Connection Failed", err?.message));

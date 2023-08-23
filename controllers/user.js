@@ -1,48 +1,80 @@
-const User = require('../models/user');
+const userModal = require("../models/user");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
+const jwt = require("jsonwebtoken");
 
-// Get all Users
-
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find();
-    if (!users) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No users found!',
-      });
-    }
-    res.status(200).json({
-      status: 'success',
-      data: users,
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err,
-    });
-  }
+const createToken = (_id) => {
+  const jwtKey = process.env.JWT_SECRET_KEY;
+  return jwt.sign({ _id }, jwtKey, { expiresIn: "3d" });
 };
-
-// Create a user
-
-exports.createUser = async (req, res) => {
-  const nameExist = await User.findOne({ name: req.body.name });
-  if (nameExist) {
-    return res
-      .status(200)
-      .send({ message: 'Name already exists', name: nameExist });
-  }
+const registerUser = async (req, res) => {
   try {
-    const { name } = req.body;
-    const user = new User({ name: name });
+    const { name, email, password } = req.body;
+
+    let user = await userModal.findOne({ email });
+
+    if (user) return res.status(400).json("Email already in use!");
+
+    if (!validator.isStrongPassword(password))
+      return res.status(400).json("Password is too weak!");
+
+    user = new userModal({ name, email, password });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+
     await user.save();
-    res.status(201).send({
-      message: 'User created successfully',
-      name: user,
-    });
+
+    const token = createToken(user._id);
+
+    res.status(200).json({ _id: user._id, name, email, token });
   } catch (error) {
-    res.status(500).json({
-      error: error.message,
-    });
+    console.log(error);
+    res.status(500).json(error);
   }
 };
+
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    let user = await userModal.findOne({ email });
+
+    if (!user) return res.status(400).json("Invalid email or password");
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword)
+      return res.status(400).json("Invalid email or password");
+
+    const token = createToken(user._id);
+
+    res.status(200).json({ _id: user._id, name: user.name, email, token });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
+const findUser = async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const user = await userModal.findById(userId);
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
+const getUsers = async (req, res) => {
+  try {
+    const users = await userModal.find();
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+module.exports = { registerUser, loginUser, findUser, getUsers };
